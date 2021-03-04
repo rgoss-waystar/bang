@@ -56,14 +56,15 @@
 		<ul>
 		{% for dag_logging in recent_logging %}
 			<li>
-				<strong>{{dag_logging.dag_item.job_name}}</strong>({{dag_logging.run_time}})
-				<br>
-				{{dag_logging.start_time|date:"m-d-y h:i:s A"}}
+				<hr class="my-1">
+				<strong>{{dag_logging.dag_item.job_name}}</strong>
+				<small title="Run time (seconds)">({{dag_logging.run_time}})</small>
+				<small title="Task Start Time">{{dag_logging.start_time|date:"m-d-y h:i:s A"}}</small>
 				<ul>
 				{% for event_logging in dag_logging.events.all %}
 					<li>
 						<small>
-							{{event_logging.log_metric}} :  {{event_logging.log_value}} | {{event_logging.created_on|date:"m-d-y h:i A"}}
+							{{ event_logging.message }} | {{event_logging.created_on|date:"m-d-y h:i A"}}
 						</small>
 					</li>
 				{% endfor %}

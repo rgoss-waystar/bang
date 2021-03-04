@@ -298,6 +298,12 @@ class LoggingEvent(models.Model):
 		verbose_name = 'DAG Item Logging Event'
 		verbose_name_plural = 'DAG Items Logging Events'
 
+	@property
+	def message(self):
+		log_value = f" value: {self.log_value}" if self.log_value is not None else ''
+		log_message = f" message: {self.log_message}" if self.log_message is not None else ''
+		return f"{self.log_metric}:{log_value}{log_message}"
+
 	def __str__(self):
 		return str(self.dag_item_logging)	
 
