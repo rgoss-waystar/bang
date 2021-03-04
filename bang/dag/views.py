@@ -40,12 +40,14 @@ class DAGCreateView(CreateView):
 	def form_valid(self, form):
 		self.object = form.save()
 		
-		base_dag_run(dag_pk=self.object.pk
-						,schedule=form.cleaned_data['initial_run_time']
-						,repeat=form.cleaned_data['repeat']
-						,verbose_name=self.object.dag_hash
-						,creator=self.object
-						,queue=self.object.dag_name)
+		base_dag_run(
+			dag_pk=self.object.pk,
+			schedule=form.cleaned_data['initial_run_time'],
+			repeat=form.cleaned_data['repeat'],
+			verbose_name=self.object.dag_hash,
+			creator=self.object,
+			queue=self.object.dag_hash
+		)
 
 		return HttpResponseRedirect(self.get_success_url())
 
@@ -55,6 +57,10 @@ class DAGListView(ListView):
 	template_name = 'dag/dag_list.html'
 	context_object_name = 'object_list'
 	paginate_by = 50
+
+	def get_context_data(self, **kwargs):
+		context = super(DAGListView, self).get_context_data(**kwargs)
+		return context
 
 
 class DAGDetailView(DetailView):
@@ -77,6 +83,10 @@ class DAGUpdateView(UpdateView):
 	template_name = 'dag/dag_form.html'
 	form_class = DAGForm
 
+	def get_object(self, *args, **kwargs):
+		initial = super(DAGUpdateView, self).get_object(*args, **kwargs)
+		return initial
+
 	def form_valid(self, form):
 		self.object = form.save()
 		dag_obj= DAG.objects.get(pk=self.kwargs['pk'])
@@ -84,12 +94,14 @@ class DAGUpdateView(UpdateView):
 		for task_obj in dag_obj.get_open_tasks():
 			task_obj.delete()
 					
-		base_dag_run(dag_pk=self.object.pk
-						,schedule=form.cleaned_data['initial_run_time']
-						,repeat=form.cleaned_data['repeat']
-						,verbose_name=self.object.dag_hash
-						,creator=self.object
-						,queue=self.object.dag_name)
+		base_dag_run(
+			dag_pk=self.object.pk,
+			schedule=form.cleaned_data['initial_run_time'],
+			repeat=form.cleaned_data['repeat'],
+			verbose_name=self.object.dag_hash,
+			creator=self.object,
+			queue=self.object.dag_hash
+		)
 
 		return HttpResponseRedirect(self.get_success_url())
 
@@ -378,7 +390,7 @@ class DAGProcessInitiateView(View):
 	def get(self, request, *args, **kwargs):
 		referer = request.META.get('HTTP_REFERER')
 		dag_obj = DAG.objects.get(pk=self.kwargs['pk'])
-		subprocess.run('start python run_tasks.py {}'.format(str(dag_obj.dag_name)), shell=True)
+		subprocess.run('start python run_tasks.py {}'.format(str(dag_obj.dag_hash)), shell=True)
 		return HttpResponseRedirect(referer)
 
 

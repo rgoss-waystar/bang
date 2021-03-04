@@ -5,6 +5,7 @@ from pagedown.widgets import PagedownWidget
 
 from appadmin.models import ProcessPackages
 from dag.models import DAG, DAGItem, DAGDependency, DAGAsset
+from utils.forms import DateInputWidget, DateTimeInputWidget
 
 
 class DAGForm(forms.ModelForm):
@@ -12,9 +13,10 @@ class DAGForm(forms.ModelForm):
 						'class': 'form-control', 'size': '5',})
 						, required=True)
 	
-	initial_run_time = forms.DateTimeField(widget=forms.DateTimeInput(attrs=
-                                {'class': 'form-control float-left',})
-                                , label='Initial Run Time', required=False)
+	initial_run_time = forms.DateTimeField(
+		widget=DateTimeInputWidget(), input_formats=["%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M"], 
+		label='Initial Run Time', required=False
+	)
 
 	repeat = forms.IntegerField(widget=forms.NumberInput(
 						attrs={'class': 'form-control', 'size': '5',})

@@ -11,10 +11,13 @@ from background_task.models import Task
 from background_task.models_completed import CompletedTask
 
 from hashlib import sha1
+import logging
 import os
 import psutil
 import subprocess
 import time
+
+logger = logging.getLogger(__name__)
 
 
 def dag_asset_name(instance, filename):
@@ -59,6 +62,7 @@ class DAG(models.Model):
 		if self.has_valid_structure():
 			return self.dag_items.filter(parent__isnull=True).first()
 		else:
+			logger.error(f"DAG {self} structure is invalid")
 			return DAGItem.objects.none()
 
 	def get_absolute_url(self):
@@ -74,7 +78,11 @@ class DAG(models.Model):
 		return reverse('dag:dag_initiate_process', args=(self.pk,))
 			
 	def get_open_tasks(self):
-		return Task.objects.filter(verbose_name=self.dag_hash)
+		try:
+			return Task.objects.filter(verbose_name=self.dag_hash)
+		except Task.DoesNotExist:
+			logger.warn(f"Getting open tasks for {self.dag_hash} failed")
+			return None
 
 	def get_task(self):
 		try:
@@ -94,7 +102,7 @@ class DAG(models.Model):
 		return CompletedTask.objects.filter(verbose_name=self.dag_hash).order_by('-locked_at')[0:15]
 
 	def __str__(self):
-		return str(self.dag_name)
+		return f"{str(self.dag_name)} - {str(self.dag_hash)}"
 
 		
 ### Creates Background Task Hash after DAG creation
@@ -279,7 +287,8 @@ class LoggingEvent(models.Model):
 	dag_item_logging = models.ForeignKey(DAGItemLogging, on_delete=models.CASCADE, related_name='events')
 	
 	log_metric = models.CharField(max_length=250)
-	log_value = models.DecimalField(max_digits=20, decimal_places=2)
+	log_value = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
+	log_message = models.CharField(max_length=250, blank=True, null=True)
 
 	created_on = models.DateTimeField(auto_now_add=True)
 
@@ -334,7 +343,7 @@ class DAGProcess(models.Model):
 			return 0
 
 	def start_process(self):
-		subprocess.run('start python run_tasks.py {}'.format(str(self.dag.dag_name)), shell=True)
+		subprocess.run('start python run_tasks.py {}'.format(str(self.dag.dag_hash)), shell=True)
 		try:
 			dag_task = self.dag.get_task()
 			dag_task.locked_by = None
@@ -408,4 +417,4 @@ def creat_consumption_task(sender, instance, created, **kwargs):
 		task_obj.delete()
 		dag_process_tracking(instance.pk, repeat=5, verbose_name='consumption_task_{}'.format(instance.pk))
 	except Exception as e:
-		print(str(e))
+		logger.error(f"Error when creating a consumption task, {str(e)}")

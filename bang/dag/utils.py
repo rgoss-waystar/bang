@@ -11,14 +11,22 @@ class DAGItemLogger(object):
 		self.dag_item = DAGItem.objects.get(pk=self.dag_item_id)
 		self.LoggingEvent = LoggingEvent
 		self.run_hash = sha1("{}{}".format(self.dag_item_id, time.time()).encode('utf-8')).hexdigest()
-		self.dag_item_logging = DAGItemLogging.objects.create(dag_item=self.dag_item
-																,run_hash=self.run_hash
-																,start_time=pytz.utc.localize(datetime.datetime.utcnow()))
+		self.dag_item_logging = DAGItemLogging.objects.create(
+			dag_item=self.dag_item,
+			run_hash=self.run_hash,
+			start_time=pytz.utc.localize(datetime.datetime.utcnow())
+		)
 
-	def add(self, log_metric, log_value):
-		self.LoggingEvent.objects.create(dag_item_logging=self.dag_item_logging
-											,log_metric=log_metric
-											,log_value=log_value)
+	def add(self, log_metric, log_value=None, log_message=None):
+		if log_message is not None:
+			log_message = str(log_message)[0:250]
+
+		self.LoggingEvent.objects.create(
+			dag_item_logging=self.dag_item_logging,
+			log_metric=log_metric,
+			log_value=log_value,
+			log_message=log_message
+		)
 	
 	def finish(self):
 		self.dag_item_logging.end_time = pytz.utc.localize(datetime.datetime.utcnow())

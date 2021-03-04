@@ -58,7 +58,7 @@ class DAGQueue(object):
 					exec(open(os.path.basename(dag_item.script_full_path)).read(), dep_dict)
 					os.chdir(current_path)
 				except Exception as e:
-					print(str(e))
+					##TODO: Adding additional logging here
 					os.chdir(current_path)
 				dil.finish()
 	

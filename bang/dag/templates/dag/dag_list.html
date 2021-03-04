@@ -45,14 +45,14 @@
 	        {% endif %}
 	    </td>
 		<td class="text-center">
-			<a href={{object.get_initiate_url}}>
+			<a href={{object.get_initiate_url}} style="text-decoration:none;">
 				<i class="fas fa-toggle-on fa-lg" style="color:lightseagreen"></i>
 			</a>
 			{% if object.current_process %}
-				<a href={{object.current_process.get_start_url}}>
+				<a href={{object.current_process.get_start_url}} style="text-decoration:none;">
 					<i class="fas fa-play-circle fa-lg" style="color:lightseagreen"></i>
 				</a>
-				<a href={{object.current_process.get_end_url}}>
+				<a href={{object.current_process.get_end_url}} style="text-decoration:none;">
 					<i class="fas fa-stop-circle fa-lg" style="color:crimson"></i>
 				</a>
 			{% endif %}
